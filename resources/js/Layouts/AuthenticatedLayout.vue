@@ -39,6 +39,13 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Dashboard
                                 </NavLink>
+
+                                <NavLink
+                                    :href="route('device.index')"
+                                    :active="route().current('device.*')"
+                                >
+                                    Dispositivos
+                                </NavLink>
                             </div>
                         </div>
 
