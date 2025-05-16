@@ -22,7 +22,7 @@ class DeviceController extends Controller
         ]);
     }
 
-	public function newDevice()
+	public function create()
     {
 		return Inertia::render('Device/Create');
     }

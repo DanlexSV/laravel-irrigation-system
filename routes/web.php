@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Devices\DeviceController;
+use App\Http\Controllers\Floors\FloorController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -21,8 +22,13 @@ Route::middleware('auth')->group(function () {
 
 	Route::prefix('device')->name('device.')->group(function () {
         Route::get('/', [DeviceController::class, 'index'])->name('index');
-        Route::get('/new-device', [DeviceController::class, 'newDevice'])->name('new');
+        Route::get('/create', [DeviceController::class, 'create'])->name('new');
         Route::post('/store', [DeviceController::class, 'store'])->name('store');
+    });
+	
+	Route::prefix('floors')->name('floors.')->group(function () {
+		Route::get('/list', [FloorController::class, 'list'])->name('list');
+		Route::get('/searc', [FloorController::class, 'search'])->name('search');
     });
 });
 

@@ -1,92 +1,3 @@
-<script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
-
-// FontAwesome
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-
-library.add(faTrash, faPlus);
-
-const macAddresses = ref([{ value: '' }]);
-const errors = ref([]);
-
-const addMacField = () => {
-  macAddresses.value.push({ value: '' });
-};
-
-const removeMacField = (index) => {
-  macAddresses.value.splice(index, 1);
-  errors.value.splice(index, 1);
-};
-
-const isValidMac = (mac) => {
-  return /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(mac);
-};
-
-const formatMacInput = (index) => {
-  let raw = macAddresses.value[index].value;
-
-  raw = raw.replace(/[^0-9A-Fa-f:]/g, '');
-
-  let cleaned = raw.replace(/:/g, '').toUpperCase();
-
-  let formatted = '';
-  for (let i = 0; i < cleaned.length && i < 12; i += 2) {
-    if (i > 0) formatted += ':';
-    formatted += cleaned.substr(i, 2);
-  }
-
-  macAddresses.value[index].value = formatted;
-};
-
-const submit = () => {
-  errors.value = [];
-  const payload = macAddresses.value.map((m) => m.value.trim());
-  const seen = new Set();
-
-  payload.forEach((mac, index) => {
-    if (!mac) {
-      errors.value[index] = 'Este campo es obligatorio.';
-    } else if (!isValidMac(mac)) {
-      errors.value[index] = 'Formato inválido. Usa XX:XX:XX:XX:XX:XX';
-    } else if (seen.has(mac)) {
-      errors.value[index] = 'Este valor ya está duplicado.';
-    } else {
-      errors.value[index] = null;
-      seen.add(mac);
-    }
-  });
-
-  if (errors.value.some((e) => e !== null)) return;
-
-  router.post(
-    route('device.store'),
-    { mac_addresses: payload },
-    {
-      onError: (serverErrors) => {
-        errors.value = [];
-
-        if (serverErrors['mac_addresses']) {
-          serverErrors['mac_addresses'].forEach((msg, index) => {
-            errors.value[index] = msg;
-          });
-        }
-
-        for (const key in serverErrors) {
-          if (key.startsWith('mac_addresses.') && /^[0-9]+$/.test(key.split('.')[1])) {
-            const idx = parseInt(key.split('.')[1]);
-            errors.value[idx] = serverErrors[key];
-          }
-        }
-      },
-    }
-  );
-};
-</script>
-
 <template>
   <Head title="Nuevo Dispositivo" />
 
@@ -99,59 +10,184 @@ const submit = () => {
 
     <div class="py-12">
       <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
-        <div class="bg-white shadow-sm sm:rounded-lg p-6">
-          <form @submit.prevent="submit">
+        <section class="bg-white p-6 rounded shadow-sm">
+          <h3 class="font-semibold mb-4">Selecciona una planta</h3>
+
+          <!-- buscador -->
+	  <SearchBar
+	    v-model="search"
+	    placeholder="Buscar planta..."
+	    @search="doSearch"
+	  />
+
+          <!-- tabla paginada -->
+	  <TableFloor
+	    :floors="floors"
+	    :selected="selectedFloor"
+	    @select="selectFloor"
+	    @paginate="changePage"
+	  />
+        </section>
+	<section class="bg-white p-6 rounded shadow-sm">
+          <form @submit.prevent="submit" class="space-y-6">
+
+            <!-- if a planta is selected show editable fields -->
+            <div v-if="selectedFloor" class="space-y-4">
+              <h3 class="font-semibold">Planta seleccionada</h3>
+
+              <div class="border p-3 rounded bg-gray-50">
+                <p class="font-medium">{{ selectedFloor.name }}</p>
+                <p class="italic text-gray-600">{{ selectedFloor.scientific_name }}</p>
+              </div>
+
+              <div class="flex gap-4">
+                <div class="flex-1">
+                  <label class="block text-sm mb-1">Frecuencia de riego (días)</label>
+                  <input
+                    v-model.number="selectedFloor.water_frequency"
+                    type="number"
+                    min="1"
+                    class="w-full border border-gray-300 rounded px-3 py-2"
+                  />
+                </div>
+
+                <div class="flex-1">
+                  <label class="block text-sm mb-1">Luz solar</label>
+                  <input
+                    v-model="selectedFloor.sunlight"
+                    type="text"
+                    class="w-full border border-gray-300 rounded px-3 py-2"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div class="space-y-4">
+              <h3 class="font-semibold">Direcciones MAC</h3>
+
               <div
-                v-for="(entry, index) in macAddresses"
-                :key="index"
-		class="flex flex-col gap-1"
+                v-for="(entry, idx) in macAddresses"
+                :key="idx"
+                class="flex flex-col gap-1"
               >
-	        <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2">
                   <input
                     v-model="entry.value"
-		    @input="formatMacInput(index)"
-		    type="text"
-		    class="flex-1 border border-gray-300 rounded px-3 py-2"
-		    placeholder="00:1A:2B:3C:4D:5E"
-		  />
+                    @input="formatMacInput(idx)"
+                    type="text"
+                    placeholder="00:1A:2B:3C:4D:5E"
+                    class="flex-1 rounded px-3 py-2"
+                    :class="errors[idx] ? 'border-red-500' : 'border-gray-300'"
+                  />
                   <button
-		    v-if="macAddresses.length > 1"
-		    type="button"
-		    @click="removeMacField(index)"
-		    class="text-red-600 hover:text-red-800"
-		    title="Eliminar"
+                    v-if="macAddresses.length > 1"
+                    type="button"
+                    @click="removeMacField(idx)"
+                    class="text-red-600 hover:text-red-800"
+                    title="Eliminar"
                   >
                     <FontAwesomeIcon icon="trash" />
                   </button>
                 </div>
-		
-		  <span v-if="errors[index]" class="text-red-600 text-sm block ml-1">
-		    {{ errors[index] }}
-                  </span>
+                <span v-if="errors[idx]" class="text-red-600 text-sm ml-1">{{ errors[idx] }}</span>
               </div>
 
               <button
                 type="button"
                 @click="addMacField"
-                class="text-blue-600 hover:underline flex items-center gap-1 mt-2"
+		class="text-brand hover:text-brand-dark hover:underline flex items-center gap-1"
               >
                 <FontAwesomeIcon icon="plus" />
                 Añadir otro dispositivo
               </button>
             </div>
 
-            <div class="mt-6">
-              <button
-                type="submit"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-              >
-                Guardar dispositivos
-              </button>
-            </div>
+            <button
+              type="submit"
+	      class="bg-brand hover:bg-brand-dark text-white px-6 py-2 rounded-2xl ml-auto block"
+	    >
+              Guardar dispositivos
+            </button>
           </form>
-        </div>
+        </section>
       </div>
     </div>
   </AuthenticatedLayout>
 </template>
+
+<script setup>
+import { ref, onMounted, watch } from 'vue'
+import axios from 'axios'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Head, router, Link, useForm } from '@inertiajs/vue3'
+import SearchBar from '@/Components/SearchBar.vue'
+import TableFloor from '@/Pages/Device/Components/TableFloor.vue'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+library.add(faTrash, faPlus)
+
+const search = ref('')
+const floors = ref({ data: [] })
+const selectedFloor = ref(null)
+const isLoading = ref(false)
+
+const fetchFloors = async (url = '/floors/list') => {
+  isLoading.value = true
+  try {
+    const res = await axios.get(url, {
+      params: search.value.trim() ? { search: search.value } : {}
+    })
+    floors.value = res.data
+  } catch (err) {
+    console.error('Error al cargar floors:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const changePage   = url   => fetchFloors(url)
+const selectFloor  = floor => (selectedFloor.value = floor)
+
+const doSearch = async () => {
+  if (search.value.trim() === '') {
+    return fetchFloors()
+  }
+
+  isLoading.value = true
+  try {
+    const res = await axios.get('/floors/searc', {
+      params: { search: search.value }
+    })
+    floors.value = res.data
+  } catch (err) {
+    console.error('Error al buscar:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(fetchFloors)
+
+const macAddresses = ref([{ value: '' }])
+const errors = ref({})
+
+const addMacField = () => {
+  macAddresses.value.push({ value: '' })
+}
+
+const removeMacField = (index) => {
+  macAddresses.value.splice(index, 1)
+  delete errors.value[index]
+}
+
+const formatMacInput = (index) => {
+  const val = macAddresses.value[index].value
+  macAddresses.value[index].value = (
+    val.replace(/[^a-fA-F0-9]/g, '')
+       .toUpperCase()
+       .match(/.{1,2}/g)?.join(':')
+       .slice(0, 17)
+  ) || ''
+}
+</script>

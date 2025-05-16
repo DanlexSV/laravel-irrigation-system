@@ -25,7 +25,7 @@ const props = defineProps({
           <div class="flex justify-between items-center mb-6">
             <p class="text-lg font-medium">¿Quieres agregar un nuevo dispositivo?</p>
             <button
-              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+	      class="bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded shadow"
 	      @click="() => router.visit(route('device.new'))"
             >
               Agregar
