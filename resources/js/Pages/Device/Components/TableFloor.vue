@@ -31,7 +31,7 @@ const changePage   = url   => url && emit('paginate', url)
             @click="selectFloor(floor)"
             :class="[
               'cursor-pointer hover:bg-gray-50',
-              selected?.id === floor.id ? 'bg-indigo-50' : ''
+	      selected?.id === floor.id ? 'bg-brand-light' : ''
             ]"
           >
             <td class="p-2">{{ floor.name }}</td>
