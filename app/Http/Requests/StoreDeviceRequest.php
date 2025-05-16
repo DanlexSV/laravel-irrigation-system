@@ -22,13 +22,16 @@ class StoreDeviceRequest extends FormRequest
 	public function rules(): array
 	{
 		return [
-			'mac_addresses' => ['required', 'array'],
-			'mac_addresses.*' => [
-				'required',
+            'devices'                     => 'required|array|min:1',
+			'devices.*.mac'               => [
+            	'required',
+				'regex:/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i',
 				'distinct',
-				'regex:/^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/',
 				'unique:devices,mac_address',
 			],
-		];
+            'devices.*.planta_id'         => 'required|integer|exists:floors,id',
+            'devices.*.water_frequency'   => 'required|integer|min:1',
+            'devices.*.sunlight'          => 'required|in:Nula,Baja,Media,Alta',
+        ];
 	}
 }

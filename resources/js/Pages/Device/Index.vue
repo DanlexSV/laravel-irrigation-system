@@ -1,11 +1,19 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, usePage, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
-const props = defineProps({
-  devices: Array,
-});
+const { props } = usePage()
+const devices = props.devices
+
+const successMessage = props.flash?.success ?? null
+const showSuccess    = ref(!!successMessage)
+
+onMounted(() => {
+  if (showSuccess.value) {
+    setTimeout(() => (showSuccess.value = false), 10_000)
+  }
+})
 </script>
 
 <template>
@@ -17,6 +25,15 @@ const props = defineProps({
 	Dispositivos Vinculados
       </h2>
     </template>
+
+    <div
+      v-if="showSuccess"
+      class="mx-auto max-w-5xl px-6 pt-6"
+    >
+      <div class="bg-green-100 text-green-800 p-4 rounded-xl">
+    	{{ successMessage }}
+      </div>
+    </div>
 
     <div class="py-6">
       <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">

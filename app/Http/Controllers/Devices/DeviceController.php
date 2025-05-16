@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers\Devices;
 
-use App\Http\Requests\StoreDeviceRequest;
 use App\Http\Controllers\Controller;
-use App\Models\Device;
+use App\Http\Requests\StoreDeviceRequest;
+use App\Services\Devices\DeviceService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DeviceController extends Controller
 {
+	public function __construct(private DeviceService $deviceService) {}
+
 	public function index()
     {
-		$user = Auth::user();
-
-        $devices = Device::where('user_id', $user->id)->get();
+		$devices = Auth::user()->devices;
 
         return Inertia::render('Device/Index', [
             'devices' => $devices,
@@ -28,14 +28,13 @@ class DeviceController extends Controller
     }
 
 	public function store(StoreDeviceRequest $request)
-	{
-		foreach ($request->mac_addresses as $mac) {
-			Device::create([
-				'user_id' => auth()->id(),
-				'mac_address' => $mac,
-			]);
-		}
+    {
+        $this->deviceService->createDevices(
+            auth()->id(),
+            $request->input('devices', [])
+        );
 
-		return redirect()->route('device.index')->with('success', 'Dispositivos vinculados correctamente.');
-	}
+		return to_route('device.index')
+			->with('success', 'Dispositivos vinculados correctamente.');
+    }
 }
