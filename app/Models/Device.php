@@ -38,4 +38,14 @@ class Device extends Model
         return $this->hasOne(HumidityReading::class)
                     ->latestOfMany('measured_at');
     }
+
+	public function wateringEvents()
+	{
+		return $this->hasMany(WateringEvent::class);
+	}
+
+	public function latestWatering()
+	{
+		return $this->hasOne(WateringEvent::class)->latestOfMany('watered_at');
+	}
 }

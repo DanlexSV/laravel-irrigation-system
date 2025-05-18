@@ -15,7 +15,10 @@ class DeviceController extends Controller
 
 	public function index()
     {
-		$devices = Auth::user()->devices;
+		$devices = Auth::user()
+			->devices()
+			->with('floor')
+			->get();
 
         return Inertia::render('Device/Index', [
             'devices' => $devices,

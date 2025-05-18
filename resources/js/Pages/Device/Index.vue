@@ -49,24 +49,40 @@ onMounted(() => {
             </button>
           </div>
 
-          <div v-if="devices.length > 0">
-            <table class="min-w-full border border-gray-300 rounded-md">
-              <thead class="bg-gray-100">
-                <tr>
-                  <th class="text-left p-3 border-b">ID</th>
-                  <th class="text-left p-3 border-b">MAC Address</th>
-                  <th class="text-left p-3 border-b">Fecha de Registro</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="device in devices" :key="device.id" class="hover:bg-gray-50">
-                  <td class="p-3 border-b">{{ device.id }}</td>
-                  <td class="p-3 border-b">{{ device.mac_address }}</td>
-                  <td class="p-3 border-b">{{ new Date(device.created_at).toLocaleString() }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+	  <div v-if="devices.length > 0">
+	    <table class="min-w-full border border-brand rounded-md">
+	      <thead class="bg-brand-darker text-white">
+		<tr>
+		  <th class="text-left p-3 border-b border-brand-dark/30">MAC Address</th>
+		  <th class="text-left p-3 border-b border-brand-dark/30">Planta</th>
+		  <th class="text-left p-3 border-b border-brand-dark/30">Riego (días)</th>
+		  <th class="text-left p-3 border-b border-brand-dark/30">Luz solar</th>
+		  <th class="text-left p-3 border-b border-brand-dark/30">Fecha de registro</th>
+		</tr>
+	      </thead>
+	      <tbody>
+		<tr
+		  v-for="device in devices"
+		  :key="device.id"
+		  class="hover:bg-brand-light"
+		>
+		  <td class="p-3 border-b border-brand/10">{{ device.mac_address }}</td>
+		  <td class="p-3 border-b border-brand/10">
+		    {{ device.floor ? device.floor.name : '—' }}
+		  </td>
+		  <td class="p-3 border-b border-brand/10">
+		    {{ device.water_frequency ?? '—' }}
+		  </td>
+		  <td class="p-3 border-b border-brand/10">
+		    {{ device.sunlight ?? '—' }}
+		  </td>
+		  <td class="p-3 border-b border-brand/10">
+		    {{ new Date(device.created_at).toLocaleString() }}
+		  </td>
+		</tr>
+	      </tbody>
+	    </table>
+	  </div>
 
           <div v-else class="text-gray-600 mt-4">
             Aún no tienes dispositivos registrados.
