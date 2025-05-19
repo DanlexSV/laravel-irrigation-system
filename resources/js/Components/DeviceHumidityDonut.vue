@@ -14,10 +14,7 @@ const chartData = computed(() => ({
   datasets: [
     {
       data: [props.humidity, 100 - props.humidity],
-      backgroundColor: [
-        '#43a047',
-        '#E8F5E9'
-      ],
+      backgroundColor: ['#43a047', '#E8F5E9'],
       borderWidth: 0
     }
   ]
@@ -31,21 +28,18 @@ const options = {
 
 <template>
   <div class="flex flex-col items-center gap-2">
-    <Doughnut :data="chartData" :options="options" class="w-40 h-40" />
+    <div class="relative">
+      <Doughnut :data="chartData" :options="options" class="w-36 h-36" />
 
-    <!-- Valor numérico dentro de la dona -->
-    <div class="absolute flex items-center justify-center w-40 h-80">
-      <span class="font-semibold text-brand-dark text-lg">
-        Humedad: {{ humidity }} %
-      </span>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <span class="font-semibold text-brand-dark text-lg">
+          {{ humidity }} %
+        </span>
+      </div>
     </div>
 
-    <span class="text-sm mt-1">{{ label }}</span>
+    <span class="mt-1 text-sm whitespace-pre-line text-center">
+      {{ label }}
+    </span>
   </div>
 </template>
-
-<style scoped>
-div.relative {
-  position: relative;
-}
-</style>

@@ -15,7 +15,7 @@ const fetchDevices = async () => {
 }
 
 onMounted(() => {
-  intervalId = setInterval(fetchDevices, 10_000) // cada 10 s
+  intervalId = setInterval(fetchDevices, 7_000)
 })
 
 onUnmounted(() => clearInterval(intervalId))
@@ -32,11 +32,14 @@ onUnmounted(() => clearInterval(intervalId))
     <div class="py-6">
       <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div class="overflow-hidden bg-white shadow-sm rounded-xl p-6">
+	  <div class="flex items-center justify-center mb-6">
+	    <h2 class="text-xl font-semibold leading-tight text-brand-darker">Humedad en las Plantas</h2>
+	  </div>
           <div v-if="devices.length" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <DeviceHumidityDonut
               v-for="d in devices"
               :key="d.id"
-              :label="d.mac_address"
+	      :label="`${d.floor?.name ?? 'Sin planta'}\n${d.mac_address}`"
               :humidity="d.last_humidity"
             />
           </div>

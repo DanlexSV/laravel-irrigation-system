@@ -24,7 +24,8 @@ class DashboardController extends Controller
         return Auth::user()
             ->devices()
             ->whereNotNull('last_humidity')
-			->select('id', 'mac_address', 'last_humidity')
+			->with(['floor:id,name'])
+			->select('id', 'mac_address', 'last_humidity', 'floor_id')
             ->get();
     }
 }
